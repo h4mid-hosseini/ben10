@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+
+  db:
+    restart: always
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=ben10_db
+      - POSTGRES_USER=ben10_user
+      - POSTGRES_PASSWORD=ben_10_strong_password
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  web:
+    restart: always
+    build: .
+    expose:
+      - 8000
+    volumes:
+      - ./ben10:/home/ben10
+    env_file: ./ben10/.env
+    command: /bin/sh -c 'python manage.py collectstatic --noinput; python manage.py makemigrations --noinput;python manage.py wait_for_db; python manage.py migrate; gunicorn --chdir ./ben10/ ben10.wsgi:application --bind 0.0.0.0:8000 --reload;'
+    depends_on:
+      - "db"
+      - "redis"
+      
+  nginx:
+    restart: always
+    build: ./nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./ben10/static_cdn:/home/ben10/static_cdn
+    depends_on:
+      - "web"
+
+  redis:
+    image: redis:alpine
