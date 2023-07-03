@@ -26,16 +26,19 @@ services:
     depends_on:
       - "db"
       - "redis"
-      
+
   nginx:
     restart: always
     build: ./nginx
     ports:
       - 80:80
     volumes:
-      - ./ben10/static_cdn:/home/ben10/static_cdn
+      - ./ben10/staticfiles:/home/staticfiles
     depends_on:
       - "web"
 
   redis:
     image: redis:alpine
+
+volumes:
+  pgdata:
