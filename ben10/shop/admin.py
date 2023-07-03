@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product
+from .models import Product, Invoice, InvoiceItem
 
 
 # Register your models here.
@@ -14,3 +14,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_prepopulated_fields(self, request, obj=None):
         return {'slug': ('name',)}
+
+
+admin.site.register(Invoice)
+admin.site.register(InvoiceItem)
