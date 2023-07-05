@@ -6,12 +6,13 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .serializers import ProductSerializers
 from .models import Product
+from .permissions import IsOwnerOrReadOnly
 
 
 # Create your views here.
 
 class ProductViews(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get(self, request):
         user = request.user
@@ -27,8 +28,8 @@ class ProductViews(APIView):
         return Response(serializer.data, status.HTTP_201_CREATED)
 
     def patch(self, request, product_id):
-        user = request.user
-        product = get_object_or_404(Product, id=product_id, owner__id=user.id)
+        product = get_object_or_404(Product, id=product_id)
+        self.check_object_permissions(request, product)
         data = JSONParser().parse(request)
         serializer = ProductSerializers(data=data, instance=product, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -36,7 +37,7 @@ class ProductViews(APIView):
         return Response(serializer.data, status.HTTP_200_OK)
 
     def delete(self, request, product_id):
-        user = request.user
-        product = get_object_or_404(Product, id=product_id, owner__id=user.id)
+        product = get_object_or_404(Product, id=product_id)
+        self.check_object_permissions(request, product)
         product.delete()
         return Response(status.HTTP_204_NO_CONTENT)
